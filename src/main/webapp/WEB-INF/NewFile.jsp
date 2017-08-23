@@ -1,0 +1,156 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+	
+	<title>Events</title>
+	<style>
+		.container {
+		text-align: left;
+		padding: 20px;
+		}
+		
+		h1 {
+		margin-left: 50px;
+		margin-top: 30px;		
+		}
+		
+		h3 {
+		margin-left: 50px;
+		margin-top: 30px;
+		}
+		table {
+		    border-collapse: collapse;
+		    width: 70%;
+		    margin-left: 40px;
+		}
+		
+		td, th {
+		    border: 1px solid;
+		    text-align: left;
+		    padding: 8px;
+		}
+		
+		p  {
+		margin-left: 40px;
+		}
+		
+	</style>
+</head>
+<body>
+	<form id="logoutForm" method="POST" action="/logout">
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+        <input type="submit" value="Logout" />
+    </form>
+	
+	<h1>Welcome, ${currentUser.firstName}</h1>
+	
+	<c:if test="${!empty eventsInState}">
+		<p>Here are some of the events in your state:</p>
+		<table>
+			<tr>
+				<th>Name</th>
+				<th>Date</th>
+				<th>Location</th>
+				<th>Host</th>
+				<th>Action / Status</th>
+			</tr>
+			<c:forEach items="${eventsInState}" var="event">
+				<tr>
+					<td><a href="/events/${event.id}">${event.name}</a></td>
+					<td><fmt:formatDate pattern="MMMM dd, yyyy" value="${event.date}"/></td>
+					<td>${event.city}</td>
+					<td>${event.host.firstName}</td>
+					<td>
+						<c:choose>
+							<c:when test="${event.host == currentUser}">
+								<a href="/events/${event.id}/edit">Edit</a> | 
+								<a href="/events/${event.id}/delete">Delete</a>
+							</c:when>
+							<c:otherwise>
+								<c:choose>
+									<c:when test="${event.attendees.contains(currentUser)}">
+										Joined | 
+										<a href="/events/${event.id}/cancel">Cancel</a>
+									</c:when>
+									<c:otherwise>
+										<a href="/events/${event.id}/join">Join</a>
+									</c:otherwise>
+								</c:choose>
+							</c:otherwise>
+						</c:choose>
+					</td>
+				</tr>
+			</c:forEach>
+		</table>
+	</c:if>
+	
+	<c:if test="${!empty eventsOutOfState}">
+		<p>Here are some of the events in other states:</p>
+		<table>
+			<tr>
+				<th>Name</th>
+				<th>Date</th>
+				<th>City</th>
+				<th>State</th>
+				<th>Host</th>
+				<th>Action</th>
+			</tr>
+			<c:forEach items="${eventsOutOfState}" var="event">
+				<tr>
+					<td><a href="/events/${event.id}">${event.name}</a></td>
+					<td><fmt:formatDate pattern="MMMM dd, yyyy" value="${event.date}"/></td>
+					<td>${event.city}</td>
+					<td>${event.state}</td>
+					<td>${event.host.firstName}</td>
+					<td>
+						<c:choose>
+							<c:when test="${event.host == currentUser}">
+								<a href="/events/${event.id}/edit">Edit</a> | 
+								<a href="/events/${event.id}/delete">Delete</a>
+							</c:when>
+							<c:otherwise>
+								<c:choose>
+									<c:when test="${event.attendees.contains(currentUser)}">
+										Joined | 
+										<a href="/events/${event.id}/cancel">Cancel</a>
+									</c:when>
+									<c:otherwise>
+										<a href="/events/${event.id}/join">Join</a>
+									</c:otherwise>
+								</c:choose>
+							</c:otherwise>
+						</c:choose>
+					</td>
+				</tr>
+			</c:forEach>
+		</table>
+	</c:if>
+	<div class="container">
+	<h3>Create an Event</h3>
+	<p><form:errors path="event.*"/></p>
+	<form:form method="POST" action="/events" modelAttribute="event">
+        <p>
+            <form:label path="name">Events Name:</form:label>
+            <form:input path="name"/>
+        </p>
+        <p>
+            <form:label path="date">Date:</form:label>
+            <form:input type="date" path="date"/>
+        </p>
+        <p>
+            <form:label path="city">Location:</form:label>
+            <form:input path="city"/>
+            <form:select path="state" items="${states}"/>
+        </p>
+        <input type="submit" value="Create Event"/>
+    </form:form>
+    </div>
+</body>
+</html>
